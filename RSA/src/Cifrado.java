@@ -86,6 +86,11 @@ public class Cifrado {
             offset += tamanoBloqueActual;
         }
         mensajeCifradoPublica = bufferSalida.toByteArray();
+        try {
+            bufferSalida.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         String mensajeCifrado64 = Base64.getEncoder().encodeToString(mensajeCifradoPublica);
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("src\\clavePublicaCifrada"))){

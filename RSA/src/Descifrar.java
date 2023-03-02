@@ -32,7 +32,6 @@ public class Descifrar {
         byte[] mensajeCifradoPublica = Base64.getDecoder().decode(mensajeCifrado64);
 
         Cipher cipher;
-        byte[] mensajeCifradoPrivada;
         try {
             cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
@@ -64,6 +63,11 @@ public class Descifrar {
             offset += tamanoBloqueActual;
         }
         byte[] mensajeDescifradoPrivado = bufferSalida.toByteArray();
+        try {
+            bufferSalida.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         offset = 0;
         try {
@@ -71,6 +75,7 @@ public class Descifrar {
         } catch (InvalidKeyException e) {
             throw new RuntimeException(e);
         }
+        ByteArrayOutputStream bufferSalida2 = new ByteArrayOutputStream();
         tamanoBloque = (((RSAPublicKey) publicKey).getModulus().bitLength() + 7) / 8;
         while (offset < mensajeDescifradoPrivado.length) {
             int tamanoBloqueActual = Math.min(tamanoBloque, mensajeDescifradoPrivado.length - offset);
@@ -78,7 +83,7 @@ public class Descifrar {
             byte[] bloqueClaro;
             try {
                 bloqueClaro = cipher.doFinal(bloqueCifrado);
-                bufferSalida.write(bloqueClaro);
+                bufferSalida2.write(bloqueClaro);
             } catch (IllegalBlockSizeException e) {
                 throw new RuntimeException(e);
             } catch (BadPaddingException e) {
@@ -88,7 +93,12 @@ public class Descifrar {
             }
             offset += tamanoBloqueActual;
         }
-        byte[] mensajeResultado = bufferSalida.toByteArray();
+        byte[] mensajeResultado = bufferSalida2.toByteArray();
+        try {
+            bufferSalida2.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         String mensaje = new String(mensajeResultado);
         System.out.println("Mensaje: " + mensaje);
